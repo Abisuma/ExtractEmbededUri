@@ -9,13 +9,27 @@ WORKDIR /src
 COPY . .
 RUN dotnet restore
 
-# Install Playwright CLI and browsers here (SDK available)
-RUN dotnet tool install --global Microsoft.Playwright.CLI \
-    && playwright install
+# Install Playwright CLI and browsers
+RUN dotnet tool install --global Microsoft.Playwright.CLI
 ENV PATH="$PATH:/root/.dotnet/tools"
+RUN playwright install
 
 RUN dotnet publish -c Release -o /app/publish
 
+
+## Build stage with SDK
+#FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+#WORKDIR /src
+#COPY . .
+#RUN dotnet restore
+#
+## Install Playwright CLI and browsers here (SDK available)
+#RUN dotnet tool install --global Microsoft.Playwright.CLI \
+    #&& playwright install
+#ENV PATH="$PATH:/root/.dotnet/tools"
+#
+#RUN dotnet publish -c Release -o /app/publish
+#
 # Final stage
 FROM base AS final
 WORKDIR /app
