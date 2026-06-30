@@ -49,7 +49,7 @@ namespace ExtractEmbededUri
 					// Click play button (JW Player)
 					await page.WaitForSelectorAsync("button.jw-icon-display, .jw-icon-display", new()
 					{
-						Timeout = 25000,
+						Timeout = 45000,
 						State = WaitForSelectorState.Visible
 					});
 
