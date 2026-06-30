@@ -7,7 +7,7 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Install system dependencies needed by Chromium
+# Install system dependencies needed by Chromium (for build/test)
 RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     libnss3 \
@@ -45,6 +45,29 @@ RUN dotnet publish -c Release -o /app/publish
 # Final image
 FROM base AS final
 WORKDIR /app
+
+# Install system dependencies again in the runtime image
+RUN apt-get update && apt-get install -y \
+    libglib2.0-0 \
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libdbus-1-3 \
+    libxcb1 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libpango-1.0-0 \
+    libcairo2 \
+    libasound2 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy published app
 COPY --from=build /app/publish .
