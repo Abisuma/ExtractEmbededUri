@@ -46,26 +46,33 @@ namespace ExtractEmbededUri
 					});
 
 
-					
-
-
-
-					// First click: triggers ad popup
-					var popupTask = page.WaitForPopupAsync();
-					await page.WaitForSelectorAsync("button.play, .vjs-big-play-button", new PageWaitForSelectorOptions
+					// Click play button (JW Player)
+					await page.WaitForSelectorAsync("button.jw-icon-display, .jw-icon-display", new()
 					{
-						Timeout = 30000,
+						Timeout = 25000,
 						State = WaitForSelectorState.Visible
 					});
-					await page.ClickAsync("button.play, .vjs-big-play-button");
-					var popup = await popupTask;
-					await popup.CloseAsync();
 
-					// Second click: actually starts the stream
-					await page.ClickAsync("button.play, .vjs-big-play-button");
+					await page.ClickAsync("button.jw-icon-display, .jw-icon-display");
 
-					// Wait a few seconds for the stream request to fire
-					await page.WaitForTimeoutAsync(5000);
+					// Handle ad popup
+					try
+					{
+						var popupTask = page.WaitForPopupAsync(new() { Timeout = 10000 });
+						var popup = await popupTask;
+						Console.WriteLine("Ad popup detected - closing");
+						await popup.CloseAsync();
+					}
+					catch
+					{
+						Console.WriteLine("No ad popup or timeout");
+					}
+
+					// Second click to start stream
+					await page.ClickAsync("button.jw-icon-display, .jw-icon-display");
+
+					// Wait for stream
+					await page.WaitForTimeoutAsync(10000);
 
 					await browser.CloseAsync();
 
