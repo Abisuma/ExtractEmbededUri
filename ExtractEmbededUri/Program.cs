@@ -13,29 +13,67 @@ namespace ExtractEmbededUri
 			// Endpoint: /extract?url=<embed-url>
 			app.MapGet("/extract", async (string url) =>
 			{
-				using var playwright = await Playwright.CreateAsync();
-				await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+				try
 				{
-					Headless = true
-				});
-				var page = await browser.NewPageAsync();
+					if (string.IsNullOrWhiteSpace(url))
+						return Results.BadRequest("URL is required");
 
-				string? streamUrl = null;
+					using var playwright = await Playwright.CreateAsync();
 
-				page.Request += (_, request) =>
-				{
-					if (request.Url.EndsWith(".m3u8") || request.Url.EndsWith(".mp4"))
+					await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
 					{
-						streamUrl = request.Url;
-					}
-				};
+						Headless = true,
+						Args = new[]
+						{
+				"--no-sandbox",
+				"--disable-setuid-sandbox",
+				"--disable-dev-shm-usage"
+			}
+					});
 
-				await page.GotoAsync(url);
-				await page.WaitForTimeoutAsync(50000); // wait for JS to run
+					var page = await browser.NewPageAsync();
 
-				return streamUrl ?? "No stream found";
+					string? streamUrl = null;
+
+					// Capture network requests
+					page.Request += (_, request) =>
+					{
+						if (request.Url.Contains(".m3u8") || request.Url.Contains(".mp4"))
+						{
+							streamUrl = request.Url;
+							Console.WriteLine($"Found stream: {request.Url}");
+						}
+					};
+
+					// Go to page with timeout
+					await page.GotoAsync(url, new PageGotoOptions
+					{
+						WaitUntil = WaitUntilState.NetworkIdle,
+						Timeout = 45000   // 45 seconds max
+					});
+
+					// Wait a bit for dynamic content (reduce this if possible)
+					await page.WaitForTimeoutAsync(8000);
+
+					await browser.CloseAsync();
+
+					if (!string.IsNullOrEmpty(streamUrl))
+						return Results.Ok(new { success = true, streamUrl });
+
+					return Results.Ok(new { success = false, message = "No stream URL found" });
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Playwright Error: {ex.Message}");
+					Console.WriteLine(ex.StackTrace);
+
+					return Results.Problem(
+						detail: ex.Message,
+						statusCode: 500,
+						title: "Playwright Extraction Failed"
+					);
+				}
 			});
-
 			app.Run();
         }
     }
