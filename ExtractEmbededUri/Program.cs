@@ -45,8 +45,18 @@ namespace ExtractEmbededUri
 						Timeout = 45000
 					});
 
+
+					
+
+
+
 					// First click: triggers ad popup
 					var popupTask = page.WaitForPopupAsync();
+					await page.WaitForSelectorAsync("button.play, .vjs-big-play-button", new PageWaitForSelectorOptions
+					{
+						Timeout = 30000,
+						State = WaitForSelectorState.Visible
+					});
 					await page.ClickAsync("button.play, .vjs-big-play-button");
 					var popup = await popupTask;
 					await popup.CloseAsync();
