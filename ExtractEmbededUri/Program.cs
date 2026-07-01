@@ -20,7 +20,7 @@ namespace ExtractEmbededUri
 					using var playwright = await Playwright.CreateAsync();
 					await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
 					{
-						Headless = false,
+						Headless = true,
 						Args = new[] { "--no-sandbox", "--disable-dev-shm-usage" }
 					});
 
