@@ -43,7 +43,7 @@ namespace ExtractEmbededUri
 					// Go to page
 					await page.GotoAsync(url, new PageGotoOptions
 					{
-						WaitUntil = WaitUntilState.DomContentLoaded,
+						WaitUntil = WaitUntilState.NetworkIdle,
 						Timeout = 30000
 					});
 
