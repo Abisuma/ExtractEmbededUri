@@ -48,13 +48,13 @@ namespace ExtractEmbededUri
 
 
 					// Click play button (JW Player)
-					await page.WaitForSelectorAsync("button.jw-icon-display, .jw-icon-display", new()
+					await page.WaitForSelectorAsync(".jw-display-icon-container .jw-icon-display, button.jw-icon-display", new()
 					{
 						Timeout = 45000,
 						State = WaitForSelectorState.Visible
 					});
 
-					await page.ClickAsync("button.jw-icon-display, .jw-icon-display");
+					await page.ClickAsync(".jw-display-icon-container .jw-icon-display, button.jw-icon-display");
 
 					// Handle ad popup
 					try
@@ -70,7 +70,7 @@ namespace ExtractEmbededUri
 					}
 
 					// Second click to start stream
-					await page.ClickAsync(".jw-display-icon-container .jw-icon-display");
+					await page.ClickAsync(".jw-display-icon-container .jw-icon-display, button.jw-icon-display");
 
 					// Wait for stream
 					await page.WaitForTimeoutAsync(300000);
