@@ -27,52 +27,25 @@ namespace ExtractEmbededUri
 					var page = await browser.NewPageAsync();
 					string? streamUrl = null;
 
-					// Capture m3u8
 					page.Response += (_, response) =>
 					{
 						if (response.Url.Contains(".m3u8"))
 						{
 							streamUrl = response.Url;
-							Console.WriteLine($" Captured stream: {response.Url}");
+							Console.WriteLine($"Captured: {response.Url}");
 						}
 					};
 
 					await page.GotoAsync(url, new PageGotoOptions
 					{
 						WaitUntil = WaitUntilState.NetworkIdle,
-						Timeout = 40000
+						Timeout = 45000
 					});
 
-					Console.WriteLine("Page loaded. Looking for play button...");
+					Console.WriteLine("Page loaded - waiting for stream...");
 
-					// First click - triggers ad popup
-					await page.WaitForSelectorAsync(".jw-icon-display, button.jw-icon-playback, .jw-display-icon-container", new()
-					{
-						Timeout = 25000,
-						State = WaitForSelectorState.Visible
-					});
-
-					await page.ClickAsync(".jw-icon-display, button.jw-icon-playback");
-
-					// Handle ad popup
-					try
-					{
-						var popupTask = page.WaitForPopupAsync(new() { Timeout = 12000 });
-						var popup = await popupTask;
-						Console.WriteLine("Ad popup detected - closing it");
-						await popup.CloseAsync();
-					}
-					catch
-					{
-						Console.WriteLine("No ad popup or timeout");
-					}
-
-					// Second click - starts the stream
-					Console.WriteLine("Clicking second time to start stream...");
-					await page.ClickAsync(".jw-icon-display, button.jw-icon-playback");
-
-					// Wait for stream to load
-					await page.WaitForTimeoutAsync(15000);
+					// Just wait longer like your console app
+					await page.WaitForTimeoutAsync(30000);
 
 					await browser.CloseAsync();
 
@@ -90,7 +63,7 @@ namespace ExtractEmbededUri
 						});
 					}
 
-					return Results.Ok(new { success = false, message = "No stream URL found" });
+					return Results.Ok(new { success = false, message = "No stream found" });
 				}
 				catch (Exception ex)
 				{
