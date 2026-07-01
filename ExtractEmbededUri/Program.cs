@@ -72,7 +72,7 @@ namespace ExtractEmbededUri
 					await page.ClickAsync("button.jw-icon-display, .jw-icon-display");
 
 					// Wait for stream
-					await page.WaitForTimeoutAsync(10000);
+					await page.WaitForTimeoutAsync(300000);
 
 					await browser.CloseAsync();
 
