@@ -40,40 +40,69 @@ namespace ExtractEmbededUri
 						}
 					};
 
+					// Go to page
 					await page.GotoAsync(url, new PageGotoOptions
 					{
-						WaitUntil = WaitUntilState.NetworkIdle,
-						Timeout = 45000
+						WaitUntil = WaitUntilState.DomContentLoaded,
+						Timeout = 30000
 					});
 
+					// Wait a bit for player to load
+					await page.WaitForTimeoutAsync(8000);
 
-					// Click play button (JW Player)
-					await page.WaitForSelectorAsync(".jw-display-icon-container .jw-icon-display, button.jw-icon-display", new()
+					Console.WriteLine("Trying to click play button...");
+
+					// Try multiple possible selectors
+					string[] playSelectors = new[]
 					{
-						Timeout = 45000,
-						State = WaitForSelectorState.Visible
-					});
+	".jw-display-icon-container .jw-icon-display",
+	"button.jw-icon-display",
+	".jw-icon-playback",
+	"button.play",
+	".vjs-big-play-button",
+	"video"
+};
 
-					await page.ClickAsync(".jw-display-icon-container .jw-icon-display, button.jw-icon-display");
+					bool clicked = false;
 
-					// Handle ad popup
+					foreach (var selector in playSelectors)
+					{
+						try
+						{
+							await page.WaitForSelectorAsync(selector, new() { Timeout = 5000 });
+							await page.ClickAsync(selector);
+							Console.WriteLine($"Clicked using selector: {selector}");
+							clicked = true;
+							break;
+						}
+						catch
+						{
+							Console.WriteLine($"Selector not found: {selector}");
+						}
+					}
+
+					if (!clicked)
+					{
+						Console.WriteLine("No play button found - trying JS click on video");
+						await page.EvaluateAsync("() => { document.querySelector('video').play(); }");
+					}
+
+					// Handle possible ad popup
 					try
 					{
-						var popupTask = page.WaitForPopupAsync(new() { Timeout = 10000 });
+						var popupTask = page.WaitForPopupAsync(new() { Timeout = 8000 });
 						var popup = await popupTask;
-						Console.WriteLine("Ad popup detected - closing");
+						Console.WriteLine("Ad popup opened - closing");
 						await popup.CloseAsync();
 					}
-					catch
-					{
-						Console.WriteLine("No ad popup or timeout");
-					}
+					catch { }
 
-					// Second click to start stream
+					// Second click attempt
+					await page.WaitForTimeoutAsync(3000);
 					await page.ClickAsync(".jw-display-icon-container .jw-icon-display, button.jw-icon-display");
 
-					// Wait for stream
-					await page.WaitForTimeoutAsync(300000);
+					// Final wait for stream
+					await page.WaitForTimeoutAsync(12000);
 
 					await browser.CloseAsync();
 
