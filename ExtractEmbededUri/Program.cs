@@ -1,4 +1,5 @@
 using Microsoft.Playwright;
+using System.ComponentModel;
 
 namespace ExtractEmbededUri
 {
@@ -69,7 +70,7 @@ namespace ExtractEmbededUri
 					}
 
 					// Second click to start stream
-					await page.ClickAsync("button.jw-icon-display, .jw-icon-display");
+					await page.ClickAsync(".jw-display-icon-container .jw-icon-display");
 
 					// Wait for stream
 					await page.WaitForTimeoutAsync(300000);
